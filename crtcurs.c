@@ -11,12 +11,10 @@
  *------------------------------------------------------------------------
  */
 
-#ifndef	lint
-static char _crtcurs_c_sccs_id[] = "@(#)crtcurs.c 1.2 12/09/29 VMIC";
-#endif	/* lint */
-
 #include <curses.h>
 #include <ctype.h>
+
+#include <crtcurs.h>
 
 /*
  *------------------------------------------------------------------------
@@ -25,9 +23,11 @@ static char _crtcurs_c_sccs_id[] = "@(#)crtcurs.c 1.2 12/09/29 VMIC";
  */
 
 void
-crtini()
+crtini(
+	void
+)
 {
-	
+
 	initscr();
 	cbreak();
 	noecho();
@@ -40,9 +40,11 @@ crtini()
  */
 
 void
-crtfin()
+crtfin(
+	void
+)
 {
-	
+
 	endwin();
 }
 
@@ -53,11 +55,12 @@ crtfin()
  */
 
 void
-crtpos(row, col)
-int     row;				/* Line on screen (1-based)	 */
-int	col;				/* Column on screen (1-based)	 */
+crtpos(
+	int	row,			/* Line on screen (1-based)	 */
+	int	col			/* Column on screen (1-based)	 */
+)
 {
-	
+
 	move(row - 1, col - 1);
 }
 
@@ -68,7 +71,9 @@ int	col;				/* Column on screen (1-based)	 */
  */
 
 void
-crtflush()
+crtflush(
+	void
+)
 {
 
 	refresh();
@@ -81,9 +86,11 @@ crtflush()
  */
 
 void
-crtclr()
+crtclr(
+	void
+)
 {
-	
+
 	clear();
 }
 
@@ -94,9 +101,11 @@ crtclr()
  */
 
 void
-crtces()
+crtces(
+	void
+)
 {
-	
+
 	clrtobot();
 }
 
@@ -107,9 +116,11 @@ crtces()
  */
 
 void
-crtcel()
+crtcel(
+	void
+)
 {
-	
+
 	clrtoeol();
 }
 
@@ -120,10 +131,11 @@ crtcel()
  */
 
 void
-crtput(s)
-char   *s;
+crtput(
+	char const   *	s
+)
 {
-	
+
 	addstr(s);
 }
 
@@ -134,8 +146,9 @@ char   *s;
  */
 
 static	void
-getstring(s)
-char   *s;
+getstring(
+	char   *	s
+)
 {
 	register char	*str = s;	/* Local string address copy	 */
 	register int	count = 0;	/* Number of valid characters	 */
@@ -187,8 +200,10 @@ char   *s;
  *------------------------------------------------------------------------
  */
 
-crtget(s)
-char   *s;
+void
+crtget(
+	char *		s
+)
 {
 	/* Read a string from the crt terminal */
 

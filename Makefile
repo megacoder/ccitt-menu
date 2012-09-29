@@ -18,22 +18,23 @@ SHELL	=/bin/sh
 #
 #
 #
-HFILES  =ccitt.h 
+HFILES  =ccitt.h
 #
 #
 #
-CFILES  =ccitt.c crtcurs.c 
+CFILES  =ccitt.c crtcurs.c
 #
 #
 #
-CC	=cc
+CC	=gcc -std=gnu99
 #
 #
 #
-CFLAGS	=-I. -g
+CFLAGS	=-I. -g -pipe
 #
 #
 #
+LDFLAGS	=-g
 LDLIBS	=-lcurses -ltermcap
 #
 #
@@ -51,7 +52,7 @@ clean:
 #
 #
 #
-clobber: clean
+distclean clobber: clean
 #
 #
 #
@@ -60,4 +61,4 @@ ccitt.o: ccitt.h ccitt.c
 #
 #
 ccitt: ccitt.h ccitt.h crtcurs.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -Dtest -o ccitt ccitt.c crtcurs.o $(LDLIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -Detest -o ccitt ccitt.c crtcurs.o $(LDLIBS)

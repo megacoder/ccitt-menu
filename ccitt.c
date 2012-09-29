@@ -11,27 +11,19 @@
  *------------------------------------------------------------------------
  */
 
-#ifndef lint
-static char _ccitt_c_sccs_id[] = "@(#)ccitt.c 1.1 12/09/29 VMIC";
-#endif	/* lint */
-
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdarg.h>
 #include <curses.h>
 #include <ctype.h>
-#include <varargs.h>
+#include <string.h>
 
 #include <ccitt.h>
+#include <crtcurs.h>
 
 #define min(x,y)	(( (x) < (y) ) ? (x) : (y))
 #define max(x,y)	(( (x) > (y) ) ? (x) : (y))
 #define	bound(x,l,u)	( ((x) <= (l)) ? (l) : ((x) >= (u) ? (u) : (x)) )
-
-/*
- *------------------------------------------------------------------------
- * Standard library definitions
- *------------------------------------------------------------------------
- */
-
-extern long strtol();			/* Convert ASCII to binary	 */
 
 /*
  *------------------------------------------------------------------------
@@ -69,25 +61,24 @@ ccitt_close()
  */
 
 void
-ccitt_center(va_alist)
-va_dcl
+ccitt_center(
+	int		row,
+	char const *	fmt,
+	...
+)
 {
-	va_list ap;			/* Walks down arg list		 */
-	char   *fmt;			/* sprintf()-like format	 */
-	int	row;			/* Row on crt for the line	 */
-	int	len;			/* Length of formatted buffer	 */
-	char	buf[COLS + 1];		/* Where we format the line	 */
+	va_list		ap;		/* Walks down arg list		 */
+	int		len;		/* Computed length of string	 */
+	char		buf[COLS + 1];	/* Where we format the line	 */
 
-	va_start(ap);
-	row = va_arg(ap, int);
-	fmt = va_arg(ap, char *);
-	vsprintf(buf, fmt, ap);
-	va_end(ap);
-	len = strlen(buf);
-	crtpos(row, 1);
+	va_start( ap, fmt );
+	vsprintf( buf, fmt, ap );
+	va_end( ap );
+	len = strlen( buf );
+	crtpos( row, 1 );
 	crtcel();
-	crtpos(row, max(1, (COLS - len) / 2));
-	crtput(buf);
+	crtpos( row, max( 1, ( COLS - len ) / 2 ));
+	crtput( buf );
 }
 
 /*
@@ -107,7 +98,7 @@ int	lines;				/* Line limit for menu		 */
 	CCITT_ITEM lit;			/* Last item table entry + 1	 */
 	int	choice;			/* What item number user chose	 */
 	CCITT_ITEM candidate;		/* Candidate matching item	 */
-	char   *reply;			/* Points to prompt reply	 */
+	char const *	reply;		/* Points to prompt reply	 */
 
 	/* Make sure this menu is on the screen				 */
 	ccitt_paint(menu, origin, lines);
@@ -154,17 +145,17 @@ Reject:
  */
 
 void
-ccitt_msg(va_alist)
-va_dcl
+ccitt_msg(
+	char const *	fmt,		/* Sprintf-like format		 */
+	...
+)
 {
-	va_list ap;			/* Walks down arg list		 */
-	char   *fmt;			/* sprintf()-like format	 */
-	char	buf[COLS + 1];		/* Where we format the line	 */
+	va_list		ap;		/* Walks down arg list		 */
+	char		buf[COLS + 1];	/* Where we format the line	 */
 
 	crtpos(MSG, 1);
 	crtcel();
-	va_start(ap);
-	fmt = va_arg(ap, char *);
+	va_start(ap, fmt);
 	if (fmt) {
 		vsprintf(buf, fmt, ap);
 		crtput(buf);
@@ -204,7 +195,7 @@ int	lines;				/* Line limit for menu		 */
 	}
 	/* Output the menu title					 */
 	row = origin;
-	origin = ccitt_subtitle(origin, menu->m_title);
+	origin = ccitt_subtitle(origin, strlen(menu->m_title), menu->m_title);
 	if ((lines -= (origin - row)) < 1)
 		lines = 1;
 	/* Compute max permitted width of a legend string		 */
@@ -237,19 +228,17 @@ int	lines;				/* Line limit for menu		 */
  */
 
 void
-ccitt_printf(va_alist)
-va_dcl
+ccitt_printf(
+	int		row,		/* Row on CRT for the line	 */
+	int		col,		/* Column on CRT for the line	 */
+	char const *	fmt,		/* Sprintf()-like format	 */
+	...
+)
 {
-	va_list ap;			/* Walks down arg list		 */
-	char   *fmt;			/* sprintf()-like format	 */
-	int	row;			/* Row on crt for the line	 */
-	int	col;			/* Column on crt for the line	 */
-	char	buf[COLS + 1];		/* Where we format the text	 */
+	va_list		ap;		/* Walks down arg list		 */
+	char		buf[COLS + 1];	/* Where we format the text	 */
 
-	va_start(ap);
-	row = va_arg(ap, int);
-	col = va_arg(ap, int);
-	fmt = va_arg(ap, char *);
+	va_start(ap, fmt);
 	vsprintf(buf, fmt, ap);
 	va_end(ap);
 	crtpos(row, col);
@@ -264,17 +253,17 @@ va_dcl
  */
 static char buf[COLS + 1];		/* I/O buffer			 */
 
-char   *
-ccitt_prompt(va_alist)
-va_dcl
+char const *
+ccitt_prompt(
+	char const *	fmt,		/* Prompt string to use		 */
+	...
+)
 {
-	va_list ap;			/* Walks down arg list		 */
-	char   *reply;			/* First non-whitespace in buf	 */
-	char   *bp;			/* End of string + 1		 */
-	char   *fmt;			/* sprintf()-like format	 */
+	va_list		ap;		/* Walks down arg list		 */
+	char   *	reply;		/* First non-whitespace in buf	 */
+	char   *	bp;		/* End of string + 1		 */
 
-	va_start(ap);
-	fmt = va_arg(ap, char *);
+	va_start(ap, fmt);
 	vsprintf(buf, fmt, ap);
 	va_end(ap);
 	crtpos(BOTTOM, 1);
@@ -287,7 +276,7 @@ va_dcl
 	for (bp = reply; *bp; ++bp);
 	while (bp > reply && isspace(*(bp - 1)))
 		*--bp = '\0';
-	return (reply);
+	return( reply );
 }
 
 /*
@@ -297,41 +286,50 @@ va_dcl
  */
 
 int
-ccitt_stricmp(l, r)
-register char *l;			/* Left string			 */
-register char *r;			/* Right string			 */
+ccitt_stricmp(
+	char *		l,		/* Left string			 */
+	char *		r		/* Right string			 */
+)
 {
-	register int lc;		/* Left character		 */
-	register int rc;		/* Right character		 */
+	int		lc;		/* Left character		 */
+	int		rc;		/* Right character		 */
 
-	for (;;) {
+	for( ; ; )	{
 		/* Find next word in left string			 */
-		while ((lc = *l) && isspace(lc))
+		while( ( lc = *l ) && isspace( lc ))	{
 			++l;
-		if (!lc)
-			return (0);	/* As much as I checked matched	 */
+		}
+		if( !lc )	{
+			return( 0 );	/* As much as I checked matched	 */
+		}
 		/* Find next word in right string			 */
-		while ((rc = *r) && isspace(rc))
+		while( ( rc = *r ) && isspace( rc ))	{
 			++r;
-		if (!rc)
-			return (-1);	/* Out of words in right string	 */
+		}
+		if( !rc )	{
+			return( -1 );	/* Out of words in right string	 */
+		}
 		/* Compare characters until they differ			 */
-		while (lc && toupper(lc) == toupper(rc)) {
+		while(lc && toupper( lc ) == toupper(rc))	{
 			lc = *++l;
 			rc = *++r;
-			if (isspace(lc) || isspace(rc))
+			if(isspace( lc ) || isspace(rc))
 				break;
 		}
 		/* If we hit end the NULL on left string, we matched	 */
-		if (!lc)
-			return (0);	/* OK as far as I checked	 */
+		if( !lc )	{
+			return( 0 );	/* OK as far as I checked	 */
+		}
 		/* Change break whitespace to a space			 */
-		if (isspace(lc))
+		if(isspace( lc ))	{
 			lc = ' ';
-		if (isspace(rc))
+		}
+		if(isspace( rc ))	{
 			rc = ' ';
-		if (lc != rc)
-			return (-1);
+		}
+		if( lc != rc )	{
+			return( -1 );
+		}
 	}
 	/* NOTREACHED							 */
 }
@@ -343,21 +341,20 @@ register char *r;			/* Right string			 */
  */
 
 int
-ccitt_subtitle(va_alist)
-va_dcl
+ccitt_subtitle(
+	int		origin,		/* First line for subtitle	 */
+	int		len,		/* Length of subtitle string	 */
+	char const *	fmt,		/* sprintf()-like format	 */
+	...
+)
 {
-	va_list ap;			/* Walks down arg list		 */
-	int	origin;			/* First line for subtitle	 */
-	int	len;			/* Length of subtitle string	 */
-	char   *fmt;			/* sprintf()-like format	 */
-	char	buf[COLS + 1];		/* Holds formatted line		 */
+	va_list		ap;		/* Walks down arg list		 */
+	char		buf[COLS + 1];	/* Holds formatted line		 */
 
 	/*
 	 * Pick off arguments: ccitt_subtitle( origin, fmt [, arg ] )
 	 */
-	va_start(ap);
-	origin = va_arg(ap, int);
-	fmt = va_arg(ap, char *);
+	va_start(ap, fmt );
 	vsprintf(buf, fmt, ap);
 	va_end(ap);
 	/*
@@ -378,26 +375,29 @@ va_dcl
  */
 
 int
-ccitt_title(title, version, date)
-char   *title;				/* Title of menu		 */
-char   *version;			/* Software version number	 */
-char   *date;				/* Generation date		 */
+ccitt_title(
+	char const *	title,		/* Title of menu		 */
+	char const *	version,	/* Software version number	 */
+	char const *	date		/* Generation date		 */
+)
 {
-	register int origin = 1;	/* Origin for banner		 */
+	int		origin = 1;	/* Origin for banner		 */
 
-	ccitt_center(origin, title, version, date);
+	ccitt_center( origin, title, version, date );
 
 	++origin;
-	crtpos(origin, 1);
+	crtpos( origin, 1 );
 	crtcel();
 
-	return (origin + 1);		/* Return first usable row	 */
+	return( origin + 1 );		/* Return first usable row	 */
 }
 
-#ifdef	test
+#ifdef	etest
 
 void
-fini()
+fini(
+	void
+)
 {
 	ccitt_close();
 	exit( 0 );
@@ -410,8 +410,9 @@ char	sitem_2[ COLS+1 ];
 char	sitem_3[ COLS+1 ];
 
 void
-painter( ip )
-CCITT_ITEM	ip;
+painter(
+	CCITT_ITEM	ip
+)
 {
 	static	int	cycle;
 	sprintf( ip->i_legend, "%d-th Item", ++cycle );
@@ -428,18 +429,19 @@ ccitt_menu_t main_menu = {
 };
 
 int
-main( argc, argv )
-int	argc;
-char	**argv;
+main(
+	int		argc,
+	char	* *	argv
+)
 {
 	CCITT_ITEM	ip;
-	if( ccitt_open() )	{
+	if(ccitt_open() )	{
 		fprintf( stderr, "%s: cannot open CRT\n", me );
-		exit(1);
+		exit( 1 );
 	}
 	for( ; ; )	{
 		ip = ccitt_menu( main_menu, 1, LINES );
-		if( ip->i_action ) ip->i_action( ip );
+		if( ip->i_action ) ip->i_action(ip);
 	}
 }
-#endif	/* test */
+#endif	/* etest */

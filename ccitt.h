@@ -62,14 +62,14 @@ typedef struct ccitt_menu_s {
  *------------------------------------------------------------------------
  */
 
-extern void ccitt_center();		/* Display centered text	 */
+void		ccitt_center( int, char const *, ... );/* Display centered text */
 extern CCITT_ITEM ccitt_menu();		/* Process a menu		 */
-extern void ccitt_msg();		/* Output string at bottom line	 */
-extern void ccitt_paint();		/* Display a menu		 */
-extern void ccitt_printf();		/* Output string at pos on crt	 */
-extern char *ccitt_prompt();		/* Prompt and get response	 */
+void		ccitt_msg( char const *, ... );/* Output string at bottom line */
+void		ccitt_paint( CCITT_MENU, int, int );/* Display a menu	 */
+void		ccitt_printf( int, int, char const *, ... );/* Output string at pos on crt */
+char const *	ccitt_prompt( char const *, ... );/* Prompt and get response */
 extern int ccitt_stricmp();		/* Compare words in two strings	 */
-extern int ccitt_subtitle();		/* Put subtitle at screen center */
+int             ccitt_subtitle( int, int, char const *, ... );/* Put subtitle at screen center */
 extern int ccitt_title();		/* Put title at top of screen	 */
 
 #undef	P
