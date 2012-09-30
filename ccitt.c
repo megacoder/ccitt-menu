@@ -32,7 +32,9 @@
  */
 
 int
-ccitt_open()
+ccitt_open(
+	void
+)
 {
 	initscr();
 	cbreak();
@@ -47,7 +49,9 @@ ccitt_open()
  */
 
 void
-ccitt_close()
+ccitt_close(
+	void
+)
 {
 	endwin();
 }
@@ -88,53 +92,62 @@ ccitt_center(
  */
 
 CCITT_ITEM
-ccitt_menu(menu, origin, lines)
-CCITT_MENU menu;			/* Menu to be processed		 */
-int	origin;				/* First line for submenu	 */
-int	lines;				/* Line limit for menu		 */
+ccitt_menu(
+	CCITT_MENU	menu,		/* Menu to be processed		 */
+	int		origin,		/* First line for submenu	 */
+	int		lines		/* Line limit for menu		 */
+)
 {
-	char   *eos;			/* What terminates the input num */
-	CCITT_ITEM it;			/* Walks down item list		 */
-	CCITT_ITEM lit;			/* Last item table entry + 1	 */
-	int	choice;			/* What item number user chose	 */
-	CCITT_ITEM candidate;		/* Candidate matching item	 */
+	char   *	eos;		/* What terminates the input num */
+	CCITT_ITEM	it;		/* Walks down item list		 */
+	CCITT_ITEM	lit;		/* Last item table entry + 1	 */
+	int		choice;		/* What item number user chose	 */
+	CCITT_ITEM	candidate;	/* Candidate matching item	 */
 	char const *	reply;		/* Points to prompt reply	 */
 
 	/* Make sure this menu is on the screen				 */
-	ccitt_paint(menu, origin, lines);
+	ccitt_paint( menu, origin, lines );
 	/* Get the number of the menu item to execute			 */
-	for (;;) {
-		reply = ccitt_prompt("%s> ",
-		 menu->m_prompt ? menu->m_prompt : "Enter item number");
+	for( ; ; )	{
+		reply = ccitt_prompt( "%s> ",
+		 menu->m_prompt ? menu->m_prompt: "Enter item number" );
 		/* Ignore null responses, you can't default on a menu!	 */
-		if (*reply == '\0')
+		if( *reply == '\0' )	{
 			continue;
+		}
 		/* Attempt to parse the reply as the numeric item number */
-		choice = (int) strtol(reply, &eos, 0);
+		choice = (int) strtol( reply, &eos, 0 );
 		candidate = menu->m_item + choice - 1;
 		/*
 		 * Permit numeric selection if it's within range of 1..N
 		 */
-		if (choice > 0 && choice <= menu->m_nitem && !*eos) {
-			return (candidate);
+		if( choice > 0 && choice <= menu->m_nitem && !*eos )	{
+			return( candidate );
 		}
 		/* Well, maybe they typed the legend itself		 */
 		candidate = NULL;
-		for(it=menu->m_item, lit = it + menu->m_nitem; it < lit; ++it) {
-			if (ccitt_stricmp(reply, it->i_legend) == 0) {
-				if (candidate)
+		for(
+			it = menu->m_item, lit = it + menu->m_nitem;
+			it < lit;
+			++it
+		)	{
+			if( ccitt_stricmp( reply, it->i_legend ) == 0 ) {
+				if( candidate )	{
 					goto Reject;
+				}
 				candidate = it;
 			}
 		}
-		if (candidate)
-			return (candidate);
+		if( candidate )	{
+			return( candidate );
+		}
 Reject:
 		/* Hiss, Boo!						 */
-		ccitt_msg("Unknown item = %s", reply);
+		ccitt_msg( "Unknown item = %s", reply );
 		(void) ccitt_prompt(
-				    "Please enter an item number or its title; press ENTER> ");
-		ccitt_msg((char *) NULL);
+		"Please enter an item number or its title; press ENTER> "
+		);
+		ccitt_msg((char *) NULL );
 	}
 }
 
@@ -287,8 +300,8 @@ ccitt_prompt(
 
 int
 ccitt_stricmp(
-	char *		l,		/* Left string			 */
-	char *		r		/* Right string			 */
+	char const *	l,		/* Left string			 */
+	char const *	r		/* Right string			 */
 )
 {
 	int		lc;		/* Left character		 */
@@ -424,8 +437,11 @@ ccitt_item_t	main_items[] = {
 	{ painter, fini, sitem_3 },
 };
 
-ccitt_menu_t main_menu = {
-	"Main Menu Title", MENUSIZE(main_items), main_items, "Yeah"
+static	ccitt_menu_t	main_menu =	{
+	"Main Menu Title",
+	MENUSIZE(main_items),
+	main_items,
+	"Yeah"
 };
 
 int
@@ -440,7 +456,7 @@ main(
 		exit( 1 );
 	}
 	for( ; ; )	{
-		ip = ccitt_menu( main_menu, 1, LINES );
+		ip = ccitt_menu( &main_menu, 1, LINES );
 		if( ip->i_action ) ip->i_action(ip);
 	}
 }
